@@ -3,5 +3,10 @@ name = "arca-finance"
 version = "0.0.1"
 edition = "2024"
 
+[workspace]
+members = ["arca-core", "arca-storage"]
+
 [dependencies]
+arca-core = { path = "arca-core" }
+arca-storage = { path = "arca-storage" }
 tracing = "0.1.44"

@@ -3,11 +3,21 @@
 version = 4
 
 [[package]]
+name = "arca-core"
+version = "0.1.0"
+
+[[package]]
 name = "arca-finance"
 version = "0.0.1"
 dependencies = [
+ "arca-core",
+ "arca-storage",
  "tracing",
 ]
+
+[[package]]
+name = "arca-storage"
+version = "0.1.0"
 
 [[package]]
 name = "once_cell"
