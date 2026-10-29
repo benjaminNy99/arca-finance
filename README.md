@@ -10,9 +10,9 @@ Desarrollado en Rust con una interfaz de terminal interactiva.
 |---|---|
 | `arca-finance` | Ejecutable y terminal interactiva. Conecta los componentes y configura los logs. |
 | [arca-core](arca-core/) | Tipos y reglas de negocio de usuarios, cuentas, movimientos y auditoría. |
-| [arca-storage](arca-storage/) | Persistencia local y guardado consistente de las operaciones. |
+| [arca-storage](arca-storage/) | Contexto de base de datos y persistencia, pendiente de implementar con SeaORM 2.0 y conexiones asíncronas. |
 
-El ejecutable utiliza ambos crates. `arca-storage` usará los tipos de `arca-core`, que se mantiene independiente de la terminal y el almacenamiento.
+El workspace conserva los tres crates. `arca-core` se mantiene independiente de la terminal y el almacenamiento.
 
 ## Documentación
 
