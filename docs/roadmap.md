@@ -2,66 +2,40 @@
 
 ## T-01: Registro, acceso y primera entrada de dinero con persistencia
 
-- Objetivo: registrar un usuario, iniciar sesión, crear una cuenta financiera propia, registrar una entrada de dinero y consultar el mismo saldo después de cerrar y volver a ejecutar la aplicación.
-- Interfaz prevista: terminal interactiva, conforme al [README](../README.md).
+- Objetivo: registrar un usuario, iniciar sesión, crear una cuenta propia, registrar una entrada de dinero y recuperar el mismo saldo después de cerrar y volver a ejecutar la aplicación.
+- Rama: `main`.
+- Interfaz: terminal interactiva.
+- Estado: en curso. El workspace y la entidad `User` con sus validaciones ya existen; falta completar el recorrido desde la terminal y guardar los datos.
+- Crates: [README](../README.md#crates-del-proyecto).
 - Historial: [roadmap-history.md](roadmap-history.md).
 
-### Alcance y trazabilidad
+### Alcance
 
-El recorrido comprende [registrar usuario](use-cases/CU-01.md), [iniciar sesión](use-cases/CU-02.md), [crear cuenta financiera](use-cases/CU-06.md), la entrada de dinero de [CU-12](use-cases/CU-12.md) y [consultar saldos](use-cases/CU-11.md). La conservación de los datos después de reiniciar responde a lo solicitado para esta tarea.
+El recorrido incluye [registro](use-cases/CU-01.md), [inicio de sesión](use-cases/CU-02.md), [creación de cuenta](use-cases/CU-06.md), la entrada de dinero de [CU-12](use-cases/CU-12.md) y [consulta del saldo](use-cases/CU-11.md).
 
-Se aplican los requisitos de autenticación, propiedad de las cuentas, tipo de cuenta, actualización del saldo, fecha del movimiento, auditoría y logs que correspondan a estas operaciones: RF-01, RF-02, RF-04, RF-05, RF-06, RF-11, RF-12, RF-13, RF-18 y RF-21, recogidos en [requirements.md](requirements.md).
+Se conservan las reglas de acceso, propiedad, tipo de cuenta, saldo, fecha, auditoría y logs de RF-01, RF-02, RF-04, RF-05, RF-06, RF-11, RF-12, RF-13, RF-18 y RF-21, en [requirements.md](requirements.md). Para T-01 se implementa solo lo que corresponde a este recorrido.
 
-Esta tarea se limita al recorrido solicitado para un usuario propietario. Las salidas, transferencias, deudas, tarjetas, cuotas, modificaciones, eliminaciones y consultas administrativas quedan fuera de esta tarea.
+Salidas, transferencias, deudas, tarjetas, cuotas, modificaciones, eliminaciones y funciones administrativas quedan para otras tareas.
 
-### Crates y módulos de Rust
+### Decisiones para T-01
 
-| Crate | Responsabilidad |
-|---|---|
-| `arca-finance` | Ejecutable e interfaz de terminal. Configura los logs y conecta los componentes. |
-| `arca-core` | Reglas y operaciones de negocio, independientes de la terminal y del almacenamiento concreto. |
-| `arca-storage` | Persistencia local de usuarios, cuentas, movimientos y auditorías. Guarda conjuntamente los cambios de una operación. |
-
-`arca-finance` utiliza los otros dos crates. `arca-storage` utiliza los tipos y contratos mínimos de `arca-core`; `arca-core` no depende de los otros crates.
-
-Los módulos evaluados para `arca-core` son:
-
-| Módulo | Responsabilidad | Uso en T-01 |
-|---|---|---|
-| `users` | Identificación, autenticación y permisos. | Registro, inicio de sesión e identidad del usuario. |
-| `accounts` | Cuentas, tipos, propietarios y saldos. | Creación de cuenta propia y consulta del saldo de dinero. |
-| `transactions` | Movimientos, transferencias y ajustes de saldo. | Registro de una entrada de dinero y su efecto sobre el saldo. |
-| `audit` | Registros de creación y modificación de movimientos. | Auditoría de creación de la entrada de dinero. |
-| `debts` | Adquisiciones de deuda, compras, cuotas y pagos. | Se incorporará en una tarea posterior. |
-
-Crear solo los módulos necesarios para T-01, sin implementar las operaciones futuras de cada módulo. Los logs se configuran en el ejecutable mediante `tracing`, ya declarado como dependencia.
+- Registro con nombre de usuario único y contraseña protegida. Reutilizar las validaciones de `User` y mantener la sesión en memoria; al reiniciar se inicia sesión otra vez.
+- Cuentas de tipo `efectivo` o `bancaria`, con saldo inicial cero. Las entradas usan importes positivos en pesos enteros y una fecha válida; comprobar que la suma no desborde.
+- Persistencia en `data/arca-finance.sqlite3`, relativo al directorio de ejecución. Usar el mismo archivo tras reiniciar, excluirlo de Git junto con sus auxiliares y no reemplazarlo si no se puede leer. Guardar entrada, saldo y auditoría juntos antes de anunciar éxito; al cargar, leer el saldo sin volver a sumar entradas.
 
 ### Hitos
 
-Realizar los hitos en el orden indicado. Todas las casillas permanecen pendientes porque el recorrido aún no está implementado.
-
-- [ ] **H1. Definir los datos mínimos y la persistencia local.** Resolver las decisiones pendientes y definir cómo se guardarán usuarios, cuentas, movimientos y auditoría, conservando sus relaciones. Comprobación: quedan documentados los campos, validaciones, saldo inicial, mecanismo de autenticación y almacenamiento necesarios para el recorrido, con la distribución de responsabilidades indicada en los crates y módulos.
-- [ ] **H2. Preparar los crates y registrar usuarios desde la terminal.** Configurar un workspace conservando el ejecutable `arca-finance` e incorporando `arca-core` y `arca-storage`. Implementar el registro y guardar los datos con el mecanismo definido, sin almacenar contraseñas en texto plano si se utilizan. Comprobación: el workspace compila; registrar un usuario, cerrar la aplicación y verificar que sigue disponible al volver a ejecutarla.
-- [ ] **H3. Iniciar sesión y controlar el acceso.** Autenticar al usuario registrado y exigir autenticación para crear cuentas, registrar entradas y consultar saldos. Comprobación: los datos válidos permiten acceder y los datos de autenticación incorrectos se rechazan sin habilitar operaciones protegidas.
-- [ ] **H4. Crear una cuenta financiera propia.** Guardar la cuenta con su tipo, propietario y saldo inicial definido en H1. Comprobación: la cuenta queda asociada al usuario autenticado, sigue disponible después de reiniciar y otro usuario no puede consultar ni modificar sus datos.
-- [ ] **H5. Registrar una entrada y consultar el saldo.** Guardar el movimiento con cuenta, importe, dirección de entrada y fecha; sumar su importe al saldo de dinero y conservar la auditoría exigida por RF-11. Comprobación: el saldo pasa de un valor inicial S a S + I al registrar una entrada de importe I; el movimiento y su auditoría quedan persistidos y no se confirma una operación guardada parcialmente.
-- [ ] **H6. Registrar los eventos del recorrido.** Incorporar los logs de inicio y cierre, intentos de autenticación, accesos denegados y operaciones completadas o fallidas conforme a RF-13. Comprobación: los eventos incluyen fecha y hora, severidad, evento y resultado, sin credenciales ni contenido financiero; se incorporan datos de correlación o diagnóstico cuando corresponda.
-- [ ] **H7. Verificar el recorrido completo tras reiniciar.** Ejecutar el escenario de cierre en dos procesos distintos. Comprobación: el segundo proceso recupera el usuario, la cuenta, la entrada y su auditoría; el saldo conserva el valor esperado y no se vuelve a sumar la entrada al cargar los datos. Ejecutar `cargo build` y `cargo test` con pruebas relevantes de persistencia, cálculo del saldo y control de acceso.
-
-### Decisiones pendientes
-
-- CU-01 y CU-02 no definen los campos obligatorios de registro ni el mecanismo de autenticación. Elegir la alternativa mínima para el uso local y definir sus validaciones antes de implementar H2 y H3.
-- CU-06 deja pendientes los datos obligatorios, tipos admitidos y saldo inicial. Definir los necesarios para esta tarea sin incorporar el comportamiento de deudas o tarjetas.
-- Elegir el almacenamiento local, su ubicación y cómo guardar de forma consistente el movimiento, el saldo y la auditoría. El repositorio aún no tiene persistencia; justificar cualquier dependencia nueva si resulta necesaria.
-- Suposición para el recorrido: después de reiniciar, el usuario vuelve a iniciar sesión. La conservación automática de la sesión no forma parte del objetivo.
+- [x] **H1. Establecer la base.** Workspace con ejecutable, core y almacenamiento; definición mínima de datos y entidad `User` con sus validaciones. Comprobación: la estructura y `User` están presentes, con pruebas ejecutadas en la implementación de la entidad.
+- [ ] **H2. Registrar e iniciar sesión.** Conectar `User` con la terminal, proteger la contraseña y guardar el usuario. Comprobación: un usuario registrado puede iniciar sesión, incluso tras reiniciar; las credenciales incorrectas se rechazan.
+- [ ] **H3. Crear una cuenta y registrar una entrada.** Guardar una cuenta del usuario autenticado con saldo cero; registrar importe y fecha, actualizar el saldo y conservar la auditoría de creación. Incorporar los logs del recorrido. Comprobación: una entrada de 1000 pesos deja el saldo en 1000; otro usuario no puede acceder a esa cuenta y un fallo no deja la entrada guardada parcialmente.
+- [ ] **H4. Comprobar el recorrido completo.** Cerrar la aplicación y abrirla en otro proceso con el mismo almacenamiento. Comprobación: se recuperan usuario, cuenta, movimiento y auditoría, con el mismo saldo y sin duplicaciones. Ejecutar `cargo build`, `cargo test` y el recorrido manual, registrando sus resultados.
 
 ### Criterios de cierre
 
-1. Desde la terminal, registrar un usuario, iniciar sesión y crear una cuenta propia con saldo inicial conocido S.
-2. Registrar una entrada de dinero de importe I y fecha indicada; consultar un saldo de S + I y comprobar que existen el movimiento y su auditoría.
-3. Cerrar por completo la aplicación y volver a ejecutarla usando el mismo almacenamiento local.
-4. Iniciar sesión con el usuario registrado y consultar la misma cuenta: el saldo debe seguir siendo S + I, conservando el movimiento y su auditoría sin duplicaciones.
-5. Comprobar que la autenticación incorrecta y los intentos de acceso a cuentas de otro usuario se rechazan, y que los logs del recorrido respetan RF-13.
-6. Completar las comprobaciones de los hitos y registrar los resultados reales de `cargo build`, `cargo test` y la ejecución manual del recorrido. Marcar T-01 como terminada en ambos documentos solo cuando se cumplan estos criterios.
+1. Completar desde la terminal el registro, acceso, creación de cuenta, entrada y consulta del saldo.
+2. Recuperar los mismos datos y saldo tras reiniciar e iniciar sesión otra vez.
+3. Rechazar credenciales incorrectas y acceso a cuentas ajenas, sin dejar cambios parciales.
+4. Conservar la auditoría de la entrada y los logs exigidos, sin credenciales ni contenido financiero en los logs.
+5. Completar las comprobaciones de los hitos. T-01 sigue pendiente en el historial hasta cumplirlas.
 
-Próximo hito: H1, definir los datos mínimos y la persistencia local.
+Próximo hito: H2, conectar el registro y el inicio de sesión con la terminal y el almacenamiento.
