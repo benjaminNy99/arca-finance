@@ -10,19 +10,19 @@ Rama: `main`. Preparar la entidad `User` en `arca-core` como base del registro y
 - [x] Implementar la validación de contraseñas en `arca-core`.
 - [x] Implementar la generación de hashes de contraseñas con Argon2.
 - [x] Implementar la verificación de contraseñas contra su hash.
-- [ ] Documentar los campos obligatorios del usuario en CU-01.
-- [ ] Documentar las reglas de validación de esos campos en CU-01.
-- [ ] Implementar la entidad `User` con los campos definidos.
-- [ ] Aplicar las validaciones definidas al crear un usuario.
+- [x] Documentar los campos obligatorios del usuario en CU-01.
+- [x] Documentar las reglas de validación de esos campos en CU-01.
+- [x] Implementar la entidad `User` con los campos definidos.
+- [x] Aplicar las validaciones definidas al crear un usuario.
 - [ ] Integrar el módulo `password` en la creación de usuarios.
-- [ ] Agregar pruebas de creación de usuarios válidos.
-- [ ] Agregar pruebas de rechazo de datos de usuario inválidos.
-- [ ] Ejecutar `cargo build --workspace --offline`.
-- [ ] Ejecutar `cargo test --workspace --offline`.
+- [x] Agregar pruebas de creación de usuarios válidos.
+- [x] Agregar pruebas de rechazo de datos de usuario inválidos.
+- [x] Ejecutar `cargo build --workspace --offline`.
+- [x] Ejecutar `cargo test --workspace --offline`.
 
-### Decisiones pendientes
+### Decisiones
 
-CU-01 aún no define los campos obligatorios ni sus validaciones. Se conserva la decisión previa de usar un nombre de usuario único y una contraseña protegida; falta precisar los demás datos antes de implementar `User`. La comprobación de unicidad mediante almacenamiento corresponde al registro posterior.
+CU-01 define los campos obligatorios y sus validaciones. Se recuperó la entidad `User` del commit `99931bc`: ID `u32` distinto de cero, nombre normalizado y hash de contraseña. La unicidad del nombre normalizado se comprueba en el almacenamiento durante el registro. La integración de `password` en la creación de usuarios sigue pendiente: el constructor recuperado recibe un hash ya generado.
 
 ### Criterios de cierre
 
